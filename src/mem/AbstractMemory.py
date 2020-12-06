@@ -72,4 +72,4 @@ class AbstractMemory(ClockedObject):
 
     refresh_rate = Param.Int(1000000, "Memory refresh rate in number of ticks")
     threshold = Param.Int(5, "Number above which a byte can be corrupted if accessed withing refresh interval")
-    
+    flip_prob = Param.Float(0.01, "Probability that a bit flips after it reaches the threshold")    
