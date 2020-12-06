@@ -51,7 +51,7 @@
 #include "params/AbstractMemory.hh"
 #include "sim/clocked_object.hh"
 #include "sim/stats.hh"
-
+#include <unordered_map>
 
 class System;
 
@@ -128,6 +128,9 @@ class AbstractMemory : public ClockedObject
 
     // Number of ticks before refreshing DRAM voltages
     int refreshRate;
+
+    // Map of how many times an address was accessed before the refresh
+    std::unordered_map<uint64_t, int> addrAccesses;
 
     std::list<LockedAddr> lockedAddrList;
 

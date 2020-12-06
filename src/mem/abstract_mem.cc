@@ -377,11 +377,31 @@ tracePacket(System *sys, const char *label, PacketPtr pkt)
 void
 AbstractMemory::access(PacketPtr pkt)
 {
+    /*
     std::cout << "Access was called JGS2" << std::endl;
     std::cout << params()->threshold << std::endl;
     std::cout << params()->refresh_rate << std::endl;
     std::cout << threshold << std::endl;
     std::cout << refreshRate << std::endl;
+    */
+   
+    uint64_t addr = pkt->getAddr();
+    //std::cout << addr << std:: endl;	
+    if (addrAccesses.find(addr) != addrAccesses.end())
+    {
+        addrAccesses[addr] += 1;
+        std::cout << "Address found multiple times" << std::endl;
+        if (addrAccesses[addr] > threshold)
+        {
+            std::cout << "Address access exceeded threshold" << std::endl;
+        }
+        std::cout << addr << std::endl;
+        std::cout << addrAccesses[addr] << std::endl;
+    }
+    else
+    {
+	    addrAccesses[addr] = 1;
+    }
 
     if (pkt->cacheResponding()) {
         DPRINTF(MemoryAccess, "Cache responding to %#llx: not responding\n",
