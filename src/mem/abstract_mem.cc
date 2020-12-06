@@ -63,6 +63,9 @@ AbstractMemory::AbstractMemory(const Params *p) :
     kvmMap(p->kvm_map), _system(NULL),
     stats(*this)
 {
+    std::cout << p->threshold << std::endl;
+	std::cout << p->refresh_rate << std::endl;
+	
     panic_if(!range.valid() || !range.size(),
              "Memory range %s must be valid with non-zero size.",
              range.to_string());

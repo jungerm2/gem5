@@ -69,3 +69,7 @@ class AbstractMemory(ClockedObject):
     # particularly useful for ROMs.
     image_file = Param.String('',
             "Image to load into memory as its initial contents")
+
+    refresh_rate = Param.Int(1000, "Memory refresh rate in number of ticks")
+    threshold = Param.Int(5, "Number above which a byte can be corrupted if accessed withing refresh interval")
+    

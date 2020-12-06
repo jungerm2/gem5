@@ -1,3 +1,12 @@
+To run daxpy.cpp, first `make` then run 
+
+```
+build/X86/gem5.opt cpu.py -cmd daxpy
+```
+
+---
+
+
 This is the gem5 simulator.
 
 The main website can be found at http://www.gem5.org
