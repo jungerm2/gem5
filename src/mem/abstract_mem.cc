@@ -61,7 +61,8 @@ AbstractMemory::AbstractMemory(const Params *p) :
                                   MemBackdoor::Writeable)),
     confTableReported(p->conf_table_reported), inAddrMap(p->in_addr_map),
     kvmMap(p->kvm_map), _system(NULL), threshold(p->threshold),
-    refreshRate(p->refresh_rate), stats(*this)
+    refreshRate(p->refresh_rate),
+    refreshEvent([this]{refreshAddrAccesses();}, "refresh"), stats(*this)
 {
     std::cout << "Memory initatied JGS" << std::endl;
     std::cout << threshold << std::endl;
@@ -77,6 +78,8 @@ void
 AbstractMemory::initState()
 {
     ClockedObject::initState();
+
+	refreshAddrAccesses();
 
     const auto &file = params()->image_file;
     if (file == "")
@@ -375,6 +378,56 @@ tracePacket(System *sys, const char *label, PacketPtr pkt)
 #endif
 
 void
+AbstractMemory::refreshAddrAccesses()
+{
+	if (refreshRate > 0)
+	{	
+		addrAccesses.clear();
+		schedule(refreshEvent, curTick() + refreshRate);
+		std::cout << "Refreshing address accesses" << std::endl;
+	}
+}
+
+void
+AbstractMemory::trackRowAccess(uint64_t addr)
+{
+    if (threshold > 0) //if threshold is 0 or unset, then assume the user doesn't want to flip bits
+    {
+        //Accessesing a row causes it to refresh
+        if (addrAccesses.find(addr) != addrAccesses.end())
+        {
+            addrAccesses[addr] = 0; 
+        }
+
+        uint64_t neighbor_above = addr - 8;
+        uint64_t neighbor_below = addr + 8;
+
+	    trackNeighborAccess(neighbor_above);
+	    trackNeighborAccess(neighbor_below);
+    }
+}
+
+void
+AbstractMemory::trackNeighborAccess(uint64_t neighbor_addr)
+{
+    if (addrAccesses.find(neighbor_addr) != addrAccesses.end())
+    {
+        addrAccesses[neighbor_addr] += 1;
+        std::cout << "Neighbor accessed multiple times" << std::endl;
+        if (addrAccesses[neighbor_addr] > threshold)
+        {
+            std::cout << "Neigbor access exceeded threshold" << std::endl;
+        }
+        std::cout << neighbor_addr << std::endl;
+        std::cout << addrAccesses[neighbor_addr] << std::endl;
+    }
+    else
+    {
+        addrAccesses[neighbor_addr] = 1;
+    }  
+}
+
+void
 AbstractMemory::access(PacketPtr pkt)
 {
     /*
@@ -384,24 +437,8 @@ AbstractMemory::access(PacketPtr pkt)
     std::cout << threshold << std::endl;
     std::cout << refreshRate << std::endl;
     */
-   
-    uint64_t addr = pkt->getAddr();
-    //std::cout << addr << std:: endl;	
-    if (addrAccesses.find(addr) != addrAccesses.end())
-    {
-        addrAccesses[addr] += 1;
-        std::cout << "Address found multiple times" << std::endl;
-        if (addrAccesses[addr] > threshold)
-        {
-            std::cout << "Address access exceeded threshold" << std::endl;
-        }
-        std::cout << addr << std::endl;
-        std::cout << addrAccesses[addr] << std::endl;
-    }
-    else
-    {
-	    addrAccesses[addr] = 1;
-    }
+
+    trackRowAccess(pkt->getAddr());
 
     if (pkt->cacheResponding()) {
         DPRINTF(MemoryAccess, "Cache responding to %#llx: not responding\n",

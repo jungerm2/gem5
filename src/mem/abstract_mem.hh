@@ -132,7 +132,16 @@ class AbstractMemory : public ClockedObject
     // Map of how many times an address was accessed before the refresh
     std::unordered_map<uint64_t, int> addrAccesses;
 
+    //Event for refreshing the address accesses
+    EventFunctionWrapper refreshEvent;
+
     std::list<LockedAddr> lockedAddrList;
+
+    void refreshAddrAccesses();
+
+    void trackRowAccess(uint64_t addr);
+
+    void trackNeighborAccess(uint64_t neighbor_addr);
 
     // helper function for checkLockedAddrs(): we really want to
     // inline a quick check for an empty locked addr list (hopefully
