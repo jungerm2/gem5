@@ -123,6 +123,12 @@ class AbstractMemory : public ClockedObject
     // Should KVM map this memory for the guest
     const bool kvmMap;
 
+    // Threshold of memory accesses before a bitflip may occur
+    int threshold;
+
+    // Number of ticks before refreshing DRAM voltages
+    int refreshRate;
+
     std::list<LockedAddr> lockedAddrList;
 
     // helper function for checkLockedAddrs(): we really want to

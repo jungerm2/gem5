@@ -60,12 +60,14 @@ AbstractMemory::AbstractMemory(const Params *p) :
              (MemBackdoor::Flags)(MemBackdoor::Readable |
                                   MemBackdoor::Writeable)),
     confTableReported(p->conf_table_reported), inAddrMap(p->in_addr_map),
-    kvmMap(p->kvm_map), _system(NULL),
-    stats(*this)
+    kvmMap(p->kvm_map), _system(NULL), threshold(p->threshold),
+    refreshRate(p->refresh_rate), stats(*this)
 {
-    std::cout << p->threshold << std::endl;
-	std::cout << p->refresh_rate << std::endl;
-	
+    std::cout << "Memory initatied JGS" << std::endl;
+    std::cout << threshold << std::endl;
+    std::cout << refreshRate << std::endl;
+
+
     panic_if(!range.valid() || !range.size(),
              "Memory range %s must be valid with non-zero size.",
              range.to_string());
@@ -375,6 +377,12 @@ tracePacket(System *sys, const char *label, PacketPtr pkt)
 void
 AbstractMemory::access(PacketPtr pkt)
 {
+    std::cout << "Access was called JGS2" << std::endl;
+    std::cout << params()->threshold << std::endl;
+    std::cout << params()->refresh_rate << std::endl;
+    std::cout << threshold << std::endl;
+    std::cout << refreshRate << std::endl;
+
     if (pkt->cacheResponding()) {
         DPRINTF(MemoryAccess, "Cache responding to %#llx: not responding\n",
                 pkt->getAddr());
