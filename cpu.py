@@ -4,7 +4,7 @@ import m5
 from m5.objects import *
 
 
-def simulate_system(cpu_type, clock_freq, ram_type, command, mem_size='512MB'):
+def simulate_system(cpu_type, clock_freq, ram_type, command, threshold, refresh_rate, mem_size='512MB'):
     system = System()
     system.clk_domain = SrcClockDomain()
     system.clk_domain.clock = clock_freq
@@ -26,6 +26,8 @@ def simulate_system(cpu_type, clock_freq, ram_type, command, mem_size='512MB'):
 
     system.mem_ctrl = MemCtrl()
     system.mem_ctrl.dram = globals()[ram_type]()
+    system.mem_ctrl.dram.threshold = threshold
+    system.mem_ctrl.dram.refresh_rate = refresh_rate
     system.mem_ctrl.dram.range = system.mem_ranges[0]
     system.mem_ctrl.port = system.membus.mem_side_ports
 
@@ -54,6 +56,8 @@ parser.add_argument('-ram', '--ram_type', choices=['DDR3_1600_8x8', 'DDR3_2133_8
                     default='DDR3_1600_8x8', help='What RAM type to use, default: DDR3_1600_8x8.')
 parser.add_argument('-cmd', '--command', type=str, default='memtest',
                     help='Command to run on simulated CPU, default: memtest')
+parser.add_argument('-th', '--threshold', type=int, default=5, help="DRAM flip threshold")
+parser.add_argument('-rr', '--refresh-rate', dest='refresh_rate', type=int, default=1000, help="DRAM refresh rate")
 args = parser.parse_args()
 
 simulate_system(**vars(args))
