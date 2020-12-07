@@ -135,6 +135,8 @@ class AbstractMemory : public ClockedObject
 
     std::default_random_engine generator;
 
+    std::unordered_map<uint64_t, int> addrsFlipped;
+
     // Map of how many times an address was accessed before the refresh
     std::unordered_map<uint64_t, int> addrAccesses;
 
