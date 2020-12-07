@@ -11,12 +11,12 @@ int main (int argc, char *argv[]) {
   const int M = atoi(argv[2]); 
   int X[N];
 
-  for (int i = 0; i < N; ++i)
+  for (int i = 1; i < N-1; ++i)
       X[i] = rand () % 10000;
 
   // Calculate original sum
   long int sum = 0;
-  for (int i = 0; i < N; ++i)
+  for (int i = 1; i < N-1; ++i)
     sum += X[i];
   printf("Original sum: %ld\n", sum);
 
@@ -28,7 +28,7 @@ int main (int argc, char *argv[]) {
 
   // Check new sum
   long int new_sum = 0;
-  for (int i = 0; i < N; ++i)
+  for (int i = 1; i < N-1; ++i)
     new_sum += X[i];
   printf("Sum after attack: %ld\n", new_sum);
 
