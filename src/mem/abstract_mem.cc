@@ -397,14 +397,14 @@ AbstractMemory::trackRowAccess(uint64_t addr)
         //Accessesing a row causes it to refresh
         addrAccesses[addr] = 0; 
 
-	uint8_t *host_addr = toHostAddr(addr);
-	int val = *host_addr;
-	std::cout << "packet addr " << addr <<std::endl;
-	std::cout << "host addr = " << static_cast<void*>(host_addr) << std::endl;
-	std::cout << "val at addr = " << val << std::endl;
+	//uint8_t *host_addr = toHostAddr(addr);
+	//int val = *host_addr;
+	//std::cout << "packet addr " << addr <<std::endl;
+	//std::cout << "host addr = " << static_cast<void*>(host_addr) << std::endl;
+	//std::cout << "val at addr = " << val << std::endl;
 
-        uint64_t neighbor_above = addr - 8;
-        uint64_t neighbor_below = addr + 8;
+        uint64_t neighbor_above = addr - 1;
+        uint64_t neighbor_below = addr + 1;
 
 	    trackNeighborAccess(neighbor_above);
 	    trackNeighborAccess(neighbor_below);
@@ -420,7 +420,7 @@ AbstractMemory::trackNeighborAccess(uint64_t neighbor_addr)
         //std::cout << "Neighbor accessed multiple times" << std::endl;
         if (addrAccesses[neighbor_addr] > threshold)
         {
-            //std::cout << "Neigbor access exceeded threshold" << std::endl;
+           // std::cout << "Neigbor access exceeded threshold" << std::endl;
 	    accessThresholdExceeded(neighbor_addr);
         }
        // std::cout << neighbor_addr << std::endl;
@@ -439,7 +439,7 @@ AbstractMemory::accessThresholdExceeded(uint64_t addr)
 	int val = *host_addr;
 	std::cout << "val before flip: " << val << std::endl;
 
-	for (int i = 1; i <= 8; i++){
+	for (int i = 0; i < 8; i++){
 
 		float number = distribution(generator);
 		if (number <= flipProb)
@@ -452,7 +452,7 @@ AbstractMemory::accessThresholdExceeded(uint64_t addr)
 	
 	std::cout << "val after flip: " << (int)val << std::endl;
 	std::memcpy(host_addr, &val, 8);
-	std::cout << "after set value" << std::endl;
+	//std::cout << "after set value" << std::endl;
 }
 
 void
@@ -465,9 +465,8 @@ AbstractMemory::access(PacketPtr pkt)
     std::cout << threshold << std::endl;
     std::cout << refreshRate << std::endl;
     */
-	std::cout << pkt->getSize() << std::endl;
-    trackRowAccess(pkt->getAddr());
-
+	//	std::cout << pkt->getSize() << std::endl;
+   
     if (pkt->cacheResponding()) {
         DPRINTF(MemoryAccess, "Cache responding to %#llx: not responding\n",
                 pkt->getAddr());
@@ -557,6 +556,7 @@ AbstractMemory::access(PacketPtr pkt)
             TRACE_PACKET("Write");
             stats.numWrites[pkt->req->requestorId()]++;
             stats.bytesWritten[pkt->req->requestorId()] += pkt->getSize();
+	    trackRowAccess(pkt->getAddr());
         }
     } else {
         panic("Unexpected packet %s", pkt->print());
