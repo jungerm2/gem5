@@ -435,22 +435,27 @@ AbstractMemory::accessThresholdExceeded(uint64_t addr)
 	std::uniform_real_distribution<float> distribution(0.0,1.0);
 	uint8_t * host_addr = toHostAddr(addr);
 
-	std::cout << "host_addr = " << static_cast<void*>(host_addr) << std::endl;
+	//std::cout << "host_addr = " << static_cast<void*>(host_addr) << std::endl;
 	int val = *host_addr;
-	std::cout << "val before flip: " << val << std::endl;
+	//std::cout << "val before flip: " << val << std::endl;
 
 	for (int i = 0; i < 8; i++){
 
 		float number = distribution(generator);
 		if (number <= flipProb)
 		{
-			//std::cout << "Bit flipped: " + std::to_string(i) << std::endl;
 			int mask = 1 << i;
 			val ^= mask;
+
+			if (addrsFlipped.find(addr) == addrsFlipped.end())
+			{
+				addrsFlipped[addr] = 1;
+				std::cout << "flipped bit @ addr: " << static_cast<void*>(host_addr) << std::endl;
+			}
 		}
 	}
 	
-	std::cout << "val after flip: " << (int)val << std::endl;
+	//std::cout << "val after flip: " << (int)val << std::endl;
 	std::memcpy(host_addr, &val, 8);
 	//std::cout << "after set value" << std::endl;
 }
