@@ -21,8 +21,8 @@ def simulate_system(cpu_type, clock_freq, ram_type, command, threshold, refresh_
 
     system.cpu.createInterruptController()
     system.cpu.interrupts[0].pio = system.membus.mem_side_ports
-    system.cpu.interrupts[0].int_master = system.membus.cpu_side_ports
-    system.cpu.interrupts[0].int_slave = system.membus.mem_side_ports
+    system.cpu.interrupts[0].int_requestor = system.membus.cpu_side_ports
+    system.cpu.interrupts[0].int_responder = system.membus.mem_side_ports
 
     system.mem_ctrl = MemCtrl()
     system.mem_ctrl.dram = globals()[ram_type]()
