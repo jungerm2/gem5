@@ -52,6 +52,7 @@
 #include "sim/clocked_object.hh"
 #include "sim/stats.hh"
 #include <unordered_map>
+#include <random>
 
 class System;
 
@@ -126,8 +127,13 @@ class AbstractMemory : public ClockedObject
     // Threshold of memory accesses before a bitflip may occur
     int threshold;
 
+    //Probablility of a bit flipping if the number of accesses exceeds the threshold (between 0 and 1)
+    float flipProb;
+
     // Number of ticks before refreshing DRAM voltages
     int refreshRate;
+
+    std::default_random_engine generator;
 
     // Map of how many times an address was accessed before the refresh
     std::unordered_map<uint64_t, int> addrAccesses;
@@ -142,6 +148,8 @@ class AbstractMemory : public ClockedObject
     void trackRowAccess(uint64_t addr);
 
     void trackNeighborAccess(uint64_t neighbor_addr);
+
+    void accessThresholdExceeded(uint64_t addr);
 
     // helper function for checkLockedAddrs(): we really want to
     // inline a quick check for an empty locked addr list (hopefully

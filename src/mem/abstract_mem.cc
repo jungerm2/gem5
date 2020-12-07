@@ -51,6 +51,7 @@
 #include "debug/MemoryAccess.hh"
 #include "mem/packet_access.hh"
 #include "sim/system.hh"
+#include <random>
 
 using namespace std;
 
@@ -61,7 +62,7 @@ AbstractMemory::AbstractMemory(const Params *p) :
                                   MemBackdoor::Writeable)),
     confTableReported(p->conf_table_reported), inAddrMap(p->in_addr_map),
     kvmMap(p->kvm_map), _system(NULL), threshold(p->threshold),
-    refreshRate(p->refresh_rate),
+    flipProb(p->flip_prob), refreshRate(p->refresh_rate),
     refreshEvent([this]{refreshAddrAccesses();}, "refresh"), stats(*this)
 {
     std::cout << "Memory initatied JGS" << std::endl;
@@ -384,7 +385,7 @@ AbstractMemory::refreshAddrAccesses()
 	{	
 		addrAccesses.clear();
 		schedule(refreshEvent, curTick() + refreshRate);
-		std::cout << "Refreshing address accesses" << std::endl;
+		//std::cout << "Refreshing address accesses" << std::endl;
 	}
 }
 
@@ -394,10 +395,13 @@ AbstractMemory::trackRowAccess(uint64_t addr)
     if (threshold > 0) //if threshold is 0 or unset, then assume the user doesn't want to flip bits
     {
         //Accessesing a row causes it to refresh
-        if (addrAccesses.find(addr) != addrAccesses.end())
-        {
-            addrAccesses[addr] = 0; 
-        }
+        addrAccesses[addr] = 0; 
+
+	uint8_t *host_addr = toHostAddr(addr);
+	int val = *host_addr;
+	std::cout << "packet addr " << addr <<std::endl;
+	std::cout << "host addr = " << static_cast<void*>(host_addr) << std::endl;
+	std::cout << "val at addr = " << val << std::endl;
 
         uint64_t neighbor_above = addr - 8;
         uint64_t neighbor_below = addr + 8;
@@ -413,18 +417,42 @@ AbstractMemory::trackNeighborAccess(uint64_t neighbor_addr)
     if (addrAccesses.find(neighbor_addr) != addrAccesses.end())
     {
         addrAccesses[neighbor_addr] += 1;
-        std::cout << "Neighbor accessed multiple times" << std::endl;
+        //std::cout << "Neighbor accessed multiple times" << std::endl;
         if (addrAccesses[neighbor_addr] > threshold)
         {
-            std::cout << "Neigbor access exceeded threshold" << std::endl;
+            //std::cout << "Neigbor access exceeded threshold" << std::endl;
+	    accessThresholdExceeded(neighbor_addr);
         }
-        std::cout << neighbor_addr << std::endl;
-        std::cout << addrAccesses[neighbor_addr] << std::endl;
+       // std::cout << neighbor_addr << std::endl;
+       // std::cout << addrAccesses[neighbor_addr] << std::endl;
     }
-    else
-    {
-        addrAccesses[neighbor_addr] = 1;
-    }  
+}
+
+void
+AbstractMemory::accessThresholdExceeded(uint64_t addr)
+{
+	//std::default_random_engine generator;
+	std::uniform_real_distribution<float> distribution(0.0,1.0);
+	uint8_t * host_addr = toHostAddr(addr);
+
+	std::cout << "host_addr = " << static_cast<void*>(host_addr) << std::endl;
+	int val = *host_addr;
+	std::cout << "val before flip: " << val << std::endl;
+
+	for (int i = 1; i <= 8; i++){
+
+		float number = distribution(generator);
+		if (number <= flipProb)
+		{
+			//std::cout << "Bit flipped: " + std::to_string(i) << std::endl;
+			int mask = 1 << i;
+			val ^= mask;
+		}
+	}
+	
+	std::cout << "val after flip: " << (int)val << std::endl;
+	std::memcpy(host_addr, &val, 8);
+	std::cout << "after set value" << std::endl;
 }
 
 void
@@ -437,7 +465,7 @@ AbstractMemory::access(PacketPtr pkt)
     std::cout << threshold << std::endl;
     std::cout << refreshRate << std::endl;
     */
-
+	std::cout << pkt->getSize() << std::endl;
     trackRowAccess(pkt->getAddr());
 
     if (pkt->cacheResponding()) {

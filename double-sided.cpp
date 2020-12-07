@@ -12,7 +12,7 @@ int main (int argc, char *argv[]) {
   int X[N];
 
   for (int i = 1; i < N-1; ++i)
-      X[i] = rand () % 10000;
+      X[i] = 1000;
 
   // Calculate original sum
   long int sum = 0;
@@ -24,8 +24,8 @@ int main (int argc, char *argv[]) {
   int value1 = X[N/2-1];
   int value2 = X[N/2+1]; 
   for (int i = 0; i < M; i++) {
-    X[N/2-1] = rand() % 10000;
-    X[N/2+1] = rand() % 10000;
+    X[N/2-1] = 1000;
+    X[N/2+1] = 1000;
   }
   X[N/2-1] = value1;
   X[N/2+1] = value2;
